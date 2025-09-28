@@ -1,0 +1,39 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  text-align: center;
+}
+
+.container {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+@layer components {
+  .gradient-text {
+    @apply bg-gradient-to-r from-red-600 via-red-500 to-red-700 bg-clip-text text-transparent;
+  }
+
+  .card-hover {
+    @apply transform transition-all duration-300 hover:scale-105 hover:shadow-2xl;
+  }
+
+  .btn-primary-gradient {
+    @apply bg-gradient-to-r from-red-600 to-blue-600 text-white px-6 py-3 rounded-lg transition-all duration-300 hover:shadow-lg;
+  }
+
+  .neural-grid {
+    background-image:
+      linear-gradient(rgba(220, 38, 38, 0.1) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(220, 38, 38, 0.1) 1px, transparent 1px);
+    background-size: 50px 50px;
+  }
+}

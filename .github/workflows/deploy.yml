@@ -1,0 +1,104 @@
+name: Deploy Sistema Sentinela Portfolio
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  # Job de teste e build
+  test-and-build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout código
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        
+    - name: Instalar dependências
+      run: npm ci
+      
+    - name: Executar linting
+      run: npm run lint
+      
+    - name: Executar build
+      run: npm run build
+      
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: build-files
+        path: dist/
+
+  # Job de deploy para Vercel
+  deploy-vercel:
+    needs: test-and-build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+    - name: Checkout código
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        
+    - name: Instalar dependências
+      run: npm ci
+      
+    - name: Deploy para Vercel
+      uses: amondnet/vercel-action@v25
+      with:
+        vercel-token: ${{ secrets.VERCEL_TOKEN }}
+        vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+        vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+        working-directory: ./
+        vercel-args: '--prod'
+
+  # Job de deploy para GitHub Pages (backup)
+  deploy-github-pages:
+    needs: test-and-build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/develop'
+    
+    steps:
+    - name: Download build artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: build-files
+        path: dist/
+        
+    - name: Deploy para GitHub Pages
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./dist
+        cname: sistemassentinela.com.br
+
+  # Job de notificação
+  notify:
+    needs: [test-and-build, deploy-vercel]
+    runs-on: ubuntu-latest
+    if: always()
+    
+    steps:
+    - name: Notificar sucesso
+      if: needs.deploy-vercel.result == 'success'
+      run: |
+        echo "✅ Deploy realizado com sucesso!"
+        echo "🌐 Site disponível em: https://sistemassentinela.com.br"
+        
+    - name: Notificar falha
+      if: needs.deploy-vercel.result == 'failure'
+      run: |
+        echo "❌ Deploy falhou!"
+        echo "Verifique os logs para mais detalhes."
