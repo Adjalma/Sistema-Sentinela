@@ -267,3 +267,5 @@ Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para ma
 **Desenvolvido com ❤️ pela equipe Sistema Sentinela**
 
 *Transformando ideias em realidade através da tecnologia*
+#   D e p l o y   0 9 / 2 8 / 2 0 2 5   2 1 : 4 6 : 1 3  
+ 
