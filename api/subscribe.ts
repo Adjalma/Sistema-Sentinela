@@ -6,7 +6,7 @@ const isValidEmail = (email: string): boolean => {
   );
 };
 
-import { sql } from '@vercel/postgres';
+import { Pool } from 'pg';
 
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
 const FROM_EMAIL = process.env.RESEND_FROM || 'no-reply@sistemassentinela.com.br';
@@ -38,15 +38,16 @@ export default async function handler(req: any, res: any) {
       'Content-Type': 'application/json',
     } as const;
 
-    // 1) Persistir no Vercel Postgres (gratuito)
-    await sql`
-      CREATE TABLE IF NOT EXISTS subscribers (
+    // 1) Persistir no Postgres serverless (Neon / connection string em DATABASE_URL)
+    const pool = new Pool({ connectionString: process.env.DATABASE_URL, ssl: { rejectUnauthorized: false } });
+    await pool.query(`CREATE TABLE IF NOT EXISTS subscribers (
         email TEXT PRIMARY KEY,
         consent BOOLEAN DEFAULT TRUE,
         created_at TIMESTAMPTZ DEFAULT NOW()
-      )`;
-    await sql`INSERT INTO subscribers (email, consent) VALUES (${email}, ${!!consent})
-              ON CONFLICT (email) DO UPDATE SET consent = EXCLUDED.consent`;
+      )`);
+    await pool.query(`INSERT INTO subscribers (email, consent) VALUES ($1, $2)
+               ON CONFLICT (email) DO UPDATE SET consent = EXCLUDED.consent`, [email, !!consent]);
+    await pool.end();
 
     // 2) Send confirmation email (double opt-in like)
     const baseUrl = process.env.APP_BASE_URL || 'https://sistemas-sentinela.vercel.app';

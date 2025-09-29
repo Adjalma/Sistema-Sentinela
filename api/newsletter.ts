@@ -10,17 +10,19 @@ const INTRO_DEFAULT = process.env.NEWSLETTER_INTRO || '';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const { projects } = require('../src/data/projects');
 
-import { sql } from '@vercel/postgres';
+import { Pool } from 'pg';
 
 async function fetchAudienceContacts(): Promise<string[]> {
-  // Sem Audience: lemos do Vercel Postgres (tabela subscribers)
-  await sql`CREATE TABLE IF NOT EXISTS subscribers (
+  // Sem Audience: lemos do Postgres serverless (tabela subscribers)
+  const pool = new Pool({ connectionString: process.env.DATABASE_URL, ssl: { rejectUnauthorized: false } });
+  await pool.query(`CREATE TABLE IF NOT EXISTS subscribers (
     email TEXT PRIMARY KEY,
     consent BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMPTZ DEFAULT NOW()
-  )`;
-  const { rows } = await sql`SELECT email FROM subscribers WHERE consent = TRUE`;
-  return rows.map((r: any) => String(r.email).toLowerCase());
+  )`);
+  const { rows } = await pool.query<{ email: string }>(`SELECT email FROM subscribers WHERE consent = TRUE`);
+  await pool.end();
+  return rows.map((r) => String(r.email).toLowerCase());
 }
 
 type SimpleProject = {
