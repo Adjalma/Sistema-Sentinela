@@ -28,6 +28,9 @@ import ProjetoKodeshMoney from './pages/ProjetoKodeshMoney';
 import ProjetoClubeMontanha from './pages/ProjetoClubeMontanha';
 import ProjetoN8N from './pages/ProjetoN8N';
 import LinguagemSentinela from './pages/LinguagemSentinela';
+import Privacy from './pages/Privacy';
+import Terms from './pages/Terms';
+import Cookies from './pages/Cookies';
 
 // Hooks
 import { useTheme } from './hooks/useTheme';
@@ -69,6 +72,11 @@ function App() {
               <Route path="/equipe" element={<Team />} />
               <Route path="/contato" element={<Contact />} />
             </Routes>
+                    <Routes>
+                      <Route path="/privacidade" element={<Privacy />} />
+                      <Route path="/termos" element={<Terms />} />
+                      <Route path="/cookies" element={<Cookies />} />
+                    </Routes>
           </main>
 
           <Footer />

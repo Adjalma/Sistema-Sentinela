@@ -9,6 +9,19 @@ const ProjectsGrid: React.FC = () => {
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [filter, setFilter] = useState<string>('all');
 
+  // Mapear ids para rotas específicas para evitar páginas em branco em produção
+  const projectPathMap: Record<string, string> = {
+    'conexao-pessoas': '/projeto/conexao-pessoas',
+    'deepfocus': '/projeto/deepfocus',
+    'crux': '/projeto/crux',
+    'kodesh-money': '/projeto/kodesh-money',
+    'clube-montanha': '/projeto/clube-montanha',
+    'n8n-workflows': '/projeto/n8n-workflows',
+    'linguagem-sentinela': '/projeto/linguagem-sentinela',
+  };
+
+  const getProjectPath = (id: string) => projectPathMap[id] || `/projeto/${id}`;
+
   const categories = [
     { id: 'all', label: 'Todos', count: projects.length },
     { id: 'web', label: 'Web', count: projects.filter(p => p.category === 'web').length },
@@ -39,6 +52,18 @@ const ProjectsGrid: React.FC = () => {
       case 'expert': return 'bg-red-100 text-red-800';
       default: return 'bg-gray-100 text-gray-800';
     }
+  };
+
+  // Ações do CTA
+  const handleStartProject = () => {
+    window.open(
+      'https://wa.me/5522974032357?text=Olá! Gostaria de iniciar um projeto com o Sistema Sentinela.',
+      '_blank'
+    );
+  };
+
+  const handleViewCode = () => {
+    window.open('https://github.com/Adjalma', '_blank');
   };
 
   return (
@@ -104,7 +129,7 @@ const ProjectsGrid: React.FC = () => {
               transition={{ duration: 0.6, delay: index * 0.1 }}
               viewport={{ once: true }}
             >
-              <Link to={`/projeto/${project.id}`}>
+              <Link to="/projetos">
                 <motion.div
                   className="relative bg-white rounded-3xl p-8 border border-gray-200 overflow-hidden card-hover sentinela-shadow h-full"
                   whileHover={{ y: -8 }}
@@ -265,6 +290,7 @@ const ProjectsGrid: React.FC = () => {
                 className="px-8 py-4 bg-white text-red-600 font-semibold rounded-xl hover:bg-gray-50 transition-all duration-300 flex-center group"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
+                onClick={handleStartProject}
               >
                 <Play className="w-5 h-5 mr-3 group-hover:translate-x-1 transition-transform" />
                 Iniciar Projeto
@@ -273,6 +299,7 @@ const ProjectsGrid: React.FC = () => {
                 className="px-8 py-4 border-2 border-white text-white font-semibold rounded-xl hover:bg-white/10 transition-all duration-300 flex-center group"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
+                onClick={handleViewCode}
               >
                 <Github className="w-5 h-5 mr-3 group-hover:rotate-12 transition-transform" />
                 Ver Código

@@ -1,9 +1,14 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Github, Linkedin, Instagram, Mail, ArrowUp, Heart } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { toast } from 'react-hot-toast';
 
 const Footer: React.FC = () => {
+  const [email, setEmail] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [hp, setHp] = useState(''); // honeypot
+
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -12,11 +17,11 @@ const Footer: React.FC = () => {
 
   const footerLinks = {
     projetos: [
-      { name: 'Conexão Pessoas', href: '/projeto/conexao-pessoas' },
-      { name: 'DeepFocus', href: '/projeto/deepfocus' },
-      { name: 'Crux - Escalada', href: '/projeto/crux' },
-      { name: 'Kodesh Money', href: '/projeto/kodesh-money' },
-      { name: 'Linguagem Sentinela', href: '/projeto/linguagem-sentinela' }
+      { name: 'Conexão Pessoas', href: '/projetos' },
+      { name: 'DeepFocus', href: '/projetos' },
+      { name: 'Crux - Escalada', href: '/projetos' },
+      { name: 'Kodesh Money', href: '/projetos' },
+      { name: 'Linguagem Sentinela', href: '/projetos' }
     ],
     empresa: [
       { name: 'Sobre Nós', href: '/sobre' },
@@ -54,6 +59,32 @@ const Footer: React.FC = () => {
       label: 'Email'
     }
   ];
+
+  const handleSubscribe = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      toast.error('Informe um e-mail válido');
+      return;
+    }
+    try {
+      setSubmitting(true);
+      const res = await fetch('/api/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, consent: true, website: hp }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || 'Falha ao inscrever');
+      }
+      toast.success('Quase lá! Confirme sua inscrição no e-mail enviado.');
+      setEmail('');
+    } catch (err: any) {
+      toast.error(err.message || 'Erro ao enviar. Tente novamente.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   return (
     <footer className="bg-sentinela-darker border-t border-sentinela-primary/20">
@@ -201,20 +232,37 @@ const Footer: React.FC = () => {
               Receba atualizações sobre nossos projetos e novidades tecnológicas
             </p>
             
-            <div className="max-w-md mx-auto flex gap-4">
+            <form onSubmit={handleSubscribe} className="max-w-md mx-auto flex gap-4">
+              {/* Honeypot */}
+              <input
+                type="text"
+                value={hp}
+                onChange={(e) => setHp(e.target.value)}
+                className="hidden"
+                tabIndex={-1}
+                autoComplete="off"
+              />
               <input
                 type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 placeholder="Seu email"
                 className="flex-1 px-4 py-3 bg-sentinela-darker/50 border border-sentinela-primary/20 rounded-lg text-sentinela-light placeholder-sentinela-light/40 focus:outline-none focus:border-sentinela-primary focus:ring-1 focus:ring-sentinela-primary transition-colors"
+                disabled={submitting}
+                required
               />
               <motion.button
-                className="px-6 py-3 bg-gradient-to-r from-sentinela-primary to-sentinela-secondary text-white font-semibold rounded-lg hover:shadow-lg hover:shadow-sentinela-primary/25 transition-all duration-300"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
+                type="submit"
+                disabled={submitting}
+                className={`px-6 py-3 bg-gradient-to-r from-sentinela-primary to-sentinela-secondary text-white font-semibold rounded-lg transition-all duration-300 ${
+                  submitting ? 'opacity-70 cursor-not-allowed' : 'hover:shadow-lg hover:shadow-sentinela-primary/25'
+                }`}
+                whileHover={{ scale: submitting ? 1 : 1.05 }}
+                whileTap={{ scale: submitting ? 1 : 0.95 }}
               >
-                Inscrever
+                {submitting ? 'Enviando...' : 'Inscrever'}
               </motion.button>
-            </div>
+            </form>
           </div>
         </motion.div>
 
@@ -242,15 +290,15 @@ const Footer: React.FC = () => {
               transition={{ duration: 0.6, delay: 0.1 }}
               viewport={{ once: true }}
             >
-              <a href="#" className="text-sentinela-light/60 hover:text-sentinela-primary transition-colors">
+              <Link to="/privacidade" className="text-sentinela-light/60 hover:text-sentinela-primary transition-colors">
                 Política de Privacidade
-              </a>
-              <a href="#" className="text-sentinela-light/60 hover:text-sentinela-primary transition-colors">
+              </Link>
+              <Link to="/termos" className="text-sentinela-light/60 hover:text-sentinela-primary transition-colors">
                 Termos de Uso
-              </a>
-              <a href="#" className="text-sentinela-light/60 hover:text-sentinela-primary transition-colors">
+              </Link>
+              <Link to="/cookies" className="text-sentinela-light/60 hover:text-sentinela-primary transition-colors">
                 Cookies
-              </a>
+              </Link>
             </motion.div>
 
             {/* Back to top button */}
