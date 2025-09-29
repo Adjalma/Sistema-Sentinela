@@ -1,4 +1,3 @@
-import type { VercelRequest, VercelResponse } from '@vercel/node';
 
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
 const RESEND_AUDIENCE_ID = process.env.RESEND_AUDIENCE_ID; // obrigatório para envio automático
@@ -160,7 +159,7 @@ async function sendBatch(to: string[], subject: string, html: string) {
   }
 }
 
-export default async function handler(req: VercelRequest, res: VercelResponse) {
+export default async function handler(req: any, res: any) {
   try {
     if (!RESEND_AUDIENCE_ID) {
       return res.status(400).json({ error: 'RESEND_AUDIENCE_ID ausente' });

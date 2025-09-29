@@ -1,4 +1,3 @@
-import type { VercelRequest, VercelResponse } from '@vercel/node';
 
 // Simple email validator
 const isValidEmail = (email: string): boolean => {
@@ -12,7 +11,7 @@ const RESEND_AUDIENCE_ID = process.env.RESEND_AUDIENCE_ID; // optional
 const FROM_EMAIL = process.env.RESEND_FROM || 'no-reply@sistemassentinela.com.br';
 const NOTIFY_EMAIL = process.env.RESEND_NOTIFY || 'suporte@sistemassentinela.com.br';
 
-export default async function handler(req: VercelRequest, res: VercelResponse) {
+export default async function handler(req: any, res: any) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
