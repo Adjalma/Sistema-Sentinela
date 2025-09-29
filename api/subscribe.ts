@@ -18,7 +18,11 @@ export default async function handler(req: any, res: any) {
   }
 
   try {
-    const { email, consent } = req.body ?? {};
+    let body: any = req.body;
+    if (typeof body === 'string') {
+      try { body = JSON.parse(body); } catch {}
+    }
+    const { email, consent } = body ?? {};
 
     // Basic anti-bot honeypot (hidden field)
     if (typeof req.body?.website === 'string' && req.body.website.length > 0) {
@@ -31,6 +35,9 @@ export default async function handler(req: any, res: any) {
 
     if (!RESEND_API_KEY) {
       return res.status(500).json({ error: 'RESEND_API_KEY não configurada' });
+    }
+    if (!process.env.DATABASE_URL) {
+      return res.status(500).json({ error: 'DATABASE_URL não configurada' });
     }
 
     const headers = {
@@ -86,7 +93,7 @@ export default async function handler(req: any, res: any) {
     return res.status(200).json({ ok: true });
   } catch (err) {
     console.error('subscribe error', err);
-    return res.status(500).json({ error: 'Erro ao processar inscrição' });
+    return res.status(500).json({ error: 'Erro ao processar inscrição', detail: (err as any)?.message || '' });
   }
 }
 
