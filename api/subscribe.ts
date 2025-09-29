@@ -6,8 +6,9 @@ const isValidEmail = (email: string): boolean => {
   );
 };
 
+import { sql } from '@vercel/postgres';
+
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
-const RESEND_AUDIENCE_ID = process.env.RESEND_AUDIENCE_ID; // optional
 const FROM_EMAIL = process.env.RESEND_FROM || 'no-reply@sistemassentinela.com.br';
 const NOTIFY_EMAIL = process.env.RESEND_NOTIFY || 'suporte@sistemassentinela.com.br';
 
@@ -37,18 +38,15 @@ export default async function handler(req: any, res: any) {
       'Content-Type': 'application/json',
     } as const;
 
-    // 1) Optionally add to Audience (creates contact for newsletter)
-    if (RESEND_AUDIENCE_ID) {
-      await fetch('https://api.resend.com/audiences/contacts', {
-        method: 'POST',
-        headers,
-        body: JSON.stringify({
-          audience_id: RESEND_AUDIENCE_ID,
-          email,
-          unsubscribed: false,
-        }),
-      });
-    }
+    // 1) Persistir no Vercel Postgres (gratuito)
+    await sql`
+      CREATE TABLE IF NOT EXISTS subscribers (
+        email TEXT PRIMARY KEY,
+        consent BOOLEAN DEFAULT TRUE,
+        created_at TIMESTAMPTZ DEFAULT NOW()
+      )`;
+    await sql`INSERT INTO subscribers (email, consent) VALUES (${email}, ${!!consent})
+              ON CONFLICT (email) DO UPDATE SET consent = EXCLUDED.consent`;
 
     // 2) Send confirmation email (double opt-in like)
     const baseUrl = process.env.APP_BASE_URL || 'https://sistemas-sentinela.vercel.app';

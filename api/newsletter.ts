@@ -10,24 +10,17 @@ const INTRO_DEFAULT = process.env.NEWSLETTER_INTRO || '';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const { projects } = require('../src/data/projects');
 
-async function fetchAudienceContacts(): Promise<string[]> {
-  if (!RESEND_API_KEY || !RESEND_AUDIENCE_ID) return [];
-  const headers = {
-    Authorization: `Bearer ${RESEND_API_KEY}`,
-    'Content-Type': 'application/json',
-  } as const;
+import { sql } from '@vercel/postgres';
 
-  const res = await fetch(`https://api.resend.com/audiences/${RESEND_AUDIENCE_ID}/contacts`, {
-    method: 'GET',
-    headers,
-  });
-  if (!res.ok) {
-    throw new Error(`Falha ao obter contatos: ${res.status}`);
-  }
-  const data = (await res.json()) as { data?: Array<{ email: string; unsubscribed?: boolean }> };
-  return (data.data || [])
-    .filter((c) => !c.unsubscribed && !!c.email)
-    .map((c) => c.email.toLowerCase());
+async function fetchAudienceContacts(): Promise<string[]> {
+  // Sem Audience: lemos do Vercel Postgres (tabela subscribers)
+  await sql`CREATE TABLE IF NOT EXISTS subscribers (
+    email TEXT PRIMARY KEY,
+    consent BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+  )`;
+  const { rows } = await sql`SELECT email FROM subscribers WHERE consent = TRUE`;
+  return rows.map((r: any) => String(r.email).toLowerCase());
 }
 
 type SimpleProject = {
@@ -161,10 +154,6 @@ async function sendBatch(to: string[], subject: string, html: string) {
 
 export default async function handler(req: any, res: any) {
   try {
-    if (!RESEND_AUDIENCE_ID) {
-      return res.status(400).json({ error: 'RESEND_AUDIENCE_ID ausente' });
-    }
-
     const dry = req.query.dry === '1';
     const recipients = await fetchAudienceContacts();
     if (recipients.length === 0) {
