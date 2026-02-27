@@ -1,1 +1,22 @@
+# Dependencies
 node_modules
+
+# Environment variables - NEVER commit credentials
+.env
+.env.*
+!.env.example
+
+# Build outputs
+dist
+build
+.vercel
+
+# Logs
+*.log
+logs
+
+# IDE / OS
+.vscode
+.idea
+.DS_Store
+Thumbs.db
